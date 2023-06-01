@@ -1,99 +1,71 @@
-
 const express = require('express');
 const db = require('./app/config/conexion');
 const cors = require('cors');
 
-const app = express();
+const index = express();
+const PORT = process.env.PORT || 3306;
 
-app.use(express.urlencoded({extended:false}));
-app.use(express.json());
-const PORT = process.env.PORT || 3000;
+index.use(express.urlencoded({ extended: false }));
+index.use(express.json());
+index.use(cors());
 
-app.use(cors());
+// Rutas de la API REST
 
-// API REST
-
-app.get('/products', (req, res) => {
-  db.query("SELECT * FROM Frutas", (error, data) => {
-    if(error) {
+// Obtener todas las personas
+index.get('/personas', (req, res) => {
+  db.query("SELECT * FROM Personas", (error, data) => {
+    if (error) {
       throw error
     }
-    res.json({
-      mensaje: 'Result all products', 
-      data
-    })
+    res.json(data)
   })
 })
 
-app.get('/products/:id', (req, res) => {
-  console.log(req.params.id)
-  const ID = req.params.id;
+// Obtener una persona por su ID
+index.get('/personas/:id', (req, res) => {
+  const id = req.params.id;
 
-  const sql = "SELECT * FROM Frutas WHERE Id = ?"
-  db.query(sql, [ID], (error, data) => {
-    if(error) {
-      throw error
+  const sql = "SELECT * FROM Personas WHERE Id = ?";
+  db.query(sql, [id], (error, data) => {
+    if (error) {
+      throw error;
     }
-    res.json({
-      mensaje: 'Result product by Id', 
-      data
-    })
-  })
-})
+    res.json(data)
+  });
+});
 
-app.post('/products', (req, res) => {
-  console.log(Object.values(req.body))
-  const values = Object.values(req.body);
- 
-  const sql = "INSERT INTO Frutas (Nombre, Color, Precio) VALUES(?,?,?)"
-  db.query(sql, values, (error, result) => {
-    if(error){
+// Agregar una nueva persona
+index.post('/personas', (req, res) => {
+  const { nombre, edad, deporte } = req.body;
+
+  const sql = "INSERT INTO Personas (Nombre, Edad, Deporte) VALUES (?, ?, ?)";
+  db.query(sql, [nombre, edad, deporte], (error, result) => {
+    if (error) {
       throw error;
     }
     res.json({
-      mensaje: 'Added product', 
-      data:result
-    })
-  })
-  
-})
+      mensaje: 'Persona agregada',
+      data: result
+    });
+  });
+});
 
-app.delete('/products/:id', (req, res) => {
-  const codigo = req.body.codigo
-  console.log(req.params.id)
-  const ID = req.params.id;
- 
-  const sql = "DELETE FROM Frutas WHERE Id=?"
-  db.query(sql, [ID], (error, result) => {
-    if(error){
+// Eliminar una persona por su ID
+index.delete('/personas/:id', (req, res) => {
+  const id = req.params.id;
+
+  const sql = "DELETE FROM Personas WHERE Id = ?";
+  db.query(sql, [id], (error, result) => {
+    if (error) {
       throw error;
     }
     res.json({
-      mensaje: 'Deleted product', 
-      data:result
-    })
-  })
-  
-})
+      mensaje: 'Persona eliminada',
+      data: result
+    });
+  });
+});
 
-app.put('/products', (req, res) => {
-  const values = Object.values(req.body)
-  console.log(values)
- 
-  const sql = "UPDATE Frutas SET Nombre=?, Color=?, Precio=? WHERE Id=?"
-  db.query(sql, values, (error, result) => {
-    if(error){
-      throw error;
-    }
-    res.json({
-      mensaje: 'Update product', 
-      data:result
-    })
-  })
-  
-})
-
-
-app.listen(PORT, () => {
-  console.log("Running server on port:", PORT)
-})
+index.listen(PORT, () => {
+  console.log("Servidor en ejecución en el puerto:", PORT);
+});
